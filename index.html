@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lok Sewa Preparation Platform</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef2ff}
+    .container{max-width:1000px;margin:15px auto;background:#fff;padding:20px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    h1,h2{text-align:center;color:#1f3fb8}
+    button,input{padding:12px;font-size:16px;border-radius:8px;border:1px solid #ccc}
+    button{background:#1f4fd8;color:#fff;border:none;cursor:pointer}
+    button:hover{background:#163db1}
+    .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:15px}
+    .hidden{display:none}
+    .top{display:flex;justify-content:space-between;background:#f1f4ff;padding:10px;border-radius:8px;font-weight:600}
+    .q{font-size:18px;margin:12px 0}
+    .opt label{display:block;background:#f7f9ff;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e0e5ff}
+    .opt label:hover{background:#eef2ff}
+    @media(max-width:600px){.q{font-size:16px}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Lok Sewa Preparation Platform</h1>
+    <p style="text-align:center;color:#555;font-size:14px;margin-top:-8px;">Developed by: <strong>Abhisha Acharya</strong></p>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Student Login</h2>
+    <input id="name" placeholder="Enter your name" />
+    <button onclick="login()">Continue</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dash" class="hidden">
+    <h2 id="welcome"></h2>
+    <div class="menu">
+      <button onclick="startSubject('GK')">GK Practice</button>
+      <button onclick="startSubject('Constitution')">Constitution Practice</button>
+      <button onclick="startSubject('English')">English Practice</button>
+      <button onclick="startSubject('Math')">Math Practice</button>
+      <button onclick="startMock()">📝 Full Mock Exam</button>
+      <button onclick="showHistory()">📊 Score History</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="hidden">
+    <div class="top"><span id="time"></span><span id="count"></span></div>
+    <div class="q" id="question"></div>
+    <div class="opt" id="options"></div>
+    <button onclick="next()">Next</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" class="hidden">
+    <h2>Exam Result</h2>
+    <p id="res"></p>
+    <button onclick="back()">Back to Dashboard</button>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="historyBox" class="hidden">
+    <h2>Score History</h2>
+    <ul id="history"></ul>
+    <button onclick="back()">Back</button>
+  </div>
+</div>
+
+<script>
+const bank={
+ GK:[{q:"नेपालको राजधानी कुन हो?",o:["काठमाडौं","पोखरा","ललितपुर","भक्तपुर"],a:0}],
+ Constitution:[{q:"नेपालको संविधान कहिले जारी भयो?",o:["२०७०","२०७२","२०७४","२०७५"],a:1}],
+ English:[{q:"Synonym of Rapid",o:["Slow","Fast","Late","Weak"],a:1}],
+ Math:[{q:"10+20×2=?",o:["60","50","40","30"],a:1}]
+};
+
+let user=localStorage.getItem('user')||'';
+let list=[],i=0,score=0,t=0,int;
+
+if(user)showDash();
+
+function login(){user=name.value;if(!user)return alert('Enter name');localStorage.setItem('user',user);showDash()}
+function showDash(){loginDiv(false);dash.classList.remove('hidden');welcome.innerText='Welcome, '+user}
+function loginDiv(show){login.classList.toggle('hidden',!show)}
+
+function startSubject(s){list=[...bank[s]];startExam(300,s+' Practice')}
+function startMock(){list=[...bank.GK,...bank.Constitution,...bank.English,...bank.Math];startExam(7200,'Full Mock Exam')}
+
+function startExam(time,title){i=0;score=0;t=time;dash.classList.add('hidden');quiz.classList.remove('hidden');runTimer();load()}
+
+function runTimer(){updateTime();int=setInterval(()=>{t--;updateTime();if(t<=0)finish()},1000)}
+function updateTime(){let m=Math.floor(t/60),s=t%60;time.innerText=`Time: ${m}:${s.toString().padStart(2,'0')}`}
+
+function load(){count.innerText=`Q ${i+1}/${list.length}`;question.innerText=list[i].q;options.innerHTML='';list[i].o.forEach((op,x)=>options.innerHTML+=`<label><input type=radio name=opt value=${x}> ${op}</label>`)}
+
+function next(){let s=document.querySelector('input[name=opt]:checked');if(!s)return alert('Select option');if(+s.value===list[i].a)score++;i++;i<list.length?load():finish()}
+
+function finish(){clearInterval(int);quiz.classList.add('hidden');result.classList.remove('hidden');let p=Math.round(score/list.length*100);res.innerText=`Score: ${score}/${list.length}\nPercentage: ${p}%\nResult: ${p>=40?'PASS':'FAIL'}`;
+let h=JSON.parse(localStorage.getItem('history')||'[]');h.push({date:new Date().toLocaleString(),score:p});localStorage.setItem('history',JSON.stringify(h))}
+
+function showHistory(){dash.classList.add('hidden');historyBox.classList.remove('hidden');let h=JSON.parse(localStorage.getItem('history')||'[]');history.innerHTML=h.map(x=>`<li>${x.date} - ${x.score}%</li>`).join('')||'<li>No attempts</li>'}
+function back(){result.classList.add('hidden');historyBox.classList.add('hidden');dash.classList.remove('hidden')}
+</script>
+  <footer style="text-align:center;margin-top:30px;color:#666;font-size:13px;">© 2026 Lok Sewa Preparation Platform | Developed by Abhisha Acharya</footer>
+</body>
+</html>
